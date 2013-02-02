@@ -438,8 +438,27 @@ var TilesView = {
         this.view.scrollTop = 0;
     },
 
-    updateWithShiva: function(result) {
+    updateWithShiva: function(json) {
 
+        var self = this;
+        var tile = document.createElement('div');
+
+        for (var i = 0, l = json.length; i < l; i++) {
+            (function(trackJson) {
+
+                var container = document.createElement('div');
+                container.className = 'tile-container';
+
+                var trackBar = document.createElement('div');
+                trackBar.className = 'main-tile-title';
+
+                trackBar.textContent = trackJson.title || unknownTitle;
+                container.appendChild(trackBar);
+                tile.appendChild(container);
+            })(json[i]);
+
+        }
+        self.view.appendChild(tile);
     },
 
     update: function tv_update(result) {
@@ -641,18 +660,21 @@ function createListElement(option, data, index) {
         case 'song':
             var songTitle = data.metadata.title || unknownTitle;
 
-            var indexSpan = document.createElement('span');
-            indexSpan.className = 'list-song-index';
-            indexSpan.textContent = index + 1;
+//            var indexSpan = document.createElement('span');
+//            indexSpan.className = 'list-song-index';
+//            indexSpan.textContent = index + 1;
 
             var titleSpan = document.createElement('span');
+//            titleSpan.href = data.metadata.stream_uri;
             titleSpan.className = 'list-song-title';
             titleSpan.textContent = songTitle;
+//            titleSpan.id = data.metadata.id;
+            li.song = data.metadata;
 
             var lengthSpan = document.createElement('span');
             lengthSpan.className = 'list-song-length';
 
-            li.appendChild(indexSpan);
+//            li.appendChild(indexSpan);
             li.appendChild(titleSpan);
             li.appendChild(lengthSpan);
 
@@ -703,19 +725,22 @@ var ListView = {
 
         this.dataSource.push(result);
 
-        if (option === 'artist' || option === 'album') {
-            var firstLetter = result.metadata[option].charAt(0);
+//        if (option === 'artist' || option === 'album') {
+//            var firstLetter = result.metadata[option].charAt(0);
 
-            if (this.lastFirstLetter != firstLetter) {
-                this.lastFirstLetter = firstLetter;
+//            if (this.lastFirstLetter != firstLetter) {
+//                this.lastFirstLetter = firstLetter;
 
-                var headerLi = document.createElement('li');
-                headerLi.className = 'list-header';
-                headerLi.textContent = this.lastFirstLetter || '?';
-
-                this.view.appendChild(headerLi);
-            }
-        }
+//                var headerLi = document.createElement('li');
+//                headerLi.className = 'list-header';
+//                headerLi.textContent = result.metadata.title;
+//
+//                var trackLink = document.createElement('a');
+//                trackLink.href = result.metadata.stream_uri;
+//                headerLi.appendChild(trackLink);
+//                this.view.appendChild(headerLi);
+//            }
+//        }
 
         this.view.appendChild(createListElement(option, result, this.index));
 
@@ -728,6 +753,12 @@ var ListView = {
                 var target = evt.target;
                 if (!target)
                     return;
+
+                if (target.parentNode.song) {
+//                    window.location.href = target.parentNode.song.stream_uri;
+                    new MozActivity({name: "view", data: { type: "url", url: target.parentNode.song.stream_uri }});
+                    return;
+                }
 
                 var option = target.dataset.option;
                 if (option) {
@@ -972,6 +1003,8 @@ var TabBar = {
             case 'click':
                 var target = evt.target;
 
+                console.log(evt);
+
                 if (!target)
                     return;
 
@@ -1010,6 +1043,14 @@ var TabBar = {
                     case 'tabs-artists':
                         changeMode(MODE_LIST);
                         ListView.clean();
+
+                        Shiva.getTracksByArtist(1, function(json) {
+                            json.forEach(function (track) {
+                                ListView.update('song', {metadata: track});
+                            }.bind(this));
+
+//                            TilesView.updateWithShiva(json);
+                        });
 
                         break;
                     case 'tabs-albums':

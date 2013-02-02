@@ -1,6 +1,6 @@
 (function () {
 
-    var SHIVA_SERVER = "http://192.168.6.62:9002";
+    var SHIVA_SERVER = "http://192.168.1.143:9002";
     var GUARD  = "page_size=3&page=1";
 
     var $shiva = {
@@ -34,17 +34,17 @@
                       var response = JSON.parse(xhr.responseText);
 
                       if (typeof response.error === 'undefined') {
-                          Notification.set('Fetching ' + what, 'Fetch finished!');
+//                          Notification.set('Fetching ' + what, 'Fetch finished!');
                           callback(response);
                       } else {
                           alert('Error: ' + response.error);
-                          Notification.hide();
+//                          Notification.hide();
                       }
 
                   }
               };
 
-              xhr.send(data);
+              xhr.send();
         },
 
         'getArtists': function(callback) {
